@@ -9,12 +9,12 @@ class BlockEntry
     public readonly float $effective_utilization;
 
     public function __construct(
-        public readonly GameType $gametype,
-        public readonly int $season,
-        public readonly int $matchday,
+        //public readonly GameType $gametype,
+        //public readonly int $season,
+        //public readonly int $matchday,
         public readonly int $home,
         public readonly int $away,
-        public readonly BlockLocation $blocklocation,
+        //public readonly BlockLocation $blocklocation,
         public readonly BlockType $blocktype,
         public readonly float $condition,
         public readonly int $capacity,
@@ -39,6 +39,19 @@ class BlockEntry
     :string
     {
         return $this->blocktype->value.$this->capacity.$this->floodlights.$this->display.$this->security.$this->parking;
+    }
+
+    public static function decipherFingerprint(String $fingerprint)
+    :string
+    {
+        $blocktype = intval(substr($fingerprint, 0,1));
+        $capacity = intval(substr($fingerprint,1,strlen($fingerprint)-5));
+        $floodlights = intval(substr($fingerprint,-4,1));
+        $display = intval(substr($fingerprint,-3,1));
+        $security = intval(substr($fingerprint,-2,1));
+        $parking = intval(substr($fingerprint,-1,1));
+
+        return BlockType::getStringByInt($blocktype)." ".$capacity." Plätze<br><small>Flutlicht ".$floodlights."; Anzeige ".$display."; Sicherheit ".$security."; Parkplatz ".$parking."</small>";
     }
 
     public function getConditionNormalized()
