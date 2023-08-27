@@ -7,6 +7,7 @@ class BlockEntry
     public readonly int $effective_capacity;
     public readonly float $effective_condition;
     public readonly float $effective_utilization;
+    public readonly float $utilization;
 
     public function __construct(
         //public readonly GameType $gametype,
@@ -16,7 +17,7 @@ class BlockEntry
         public readonly int $away,
         //public readonly BlockLocation $blocklocation,
         public readonly BlockType $blocktype,
-        public readonly float $condition,
+        public float $condition,
         public readonly int $capacity,
         public readonly int $visitors,
         public readonly int $entryfee,
@@ -27,7 +28,8 @@ class BlockEntry
         public readonly int $parking
     )
     {
-        $this->effective_condition = (300.0 + $condition)/4;
+        $this->utilization = $visitors / $capacity;
+        $this->effective_condition = ((300.0 + $condition)/4)/100;
         $this->effective_capacity = $capacity * $this->effective_condition;
         $this->effective_utilization = $this->effective_capacity == 0 ? 0.0 : $visitors / $this->effective_capacity;
     }
@@ -52,17 +54,5 @@ class BlockEntry
         $parking = intval(substr($fingerprint,-1,1));
 
         return BlockType::getStringByInt($blocktype)." ".$capacity." Plätze<br><small>Flutlicht ".$floodlights."; Anzeige ".$display."; Sicherheit ".$security."; Parkplatz ".$parking."</small>";
-    }
-
-    public function getConditionNormalized()
-    :float
-    {
-        return $this->condition/100.0;
-    }
-
-    public function getEffectiveConditionNormalized()
-    :float
-    {
-        return $this->effective_condition/100.0;
     }
 }

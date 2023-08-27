@@ -24,7 +24,7 @@ class OfmXlsParser
                 away: intval($fields[4]->innerText()),
                 //blocklocation: BlockLocation::getBlockLocationByString($fields[5]->innerText()),
                 blocktype: BlockType::getBlockTypeByString($fields[6]->innerText()),
-                condition: floatval(str_replace(',', '.', $fields[7]->innerText())),
+                condition: floatval(str_replace(',', '.', $fields[7]->innerText()))/100,
                 capacity: intval(str_replace('.', '', $fields[8]->innerText())),
                 visitors: intval(str_replace('.', '', $fields[9]->innerText())),
                 entryfee: intval(str_replace(' €', '', $fields[10]->innerText())),
@@ -58,13 +58,16 @@ class OfmXlsParser
     {
         $group = [];
         foreach($entries as $row){
-            if($row->effective_utilization < 1){
+            if($row->effective_utilization < 1 || !$filter){
                 $fingerprint = $row->getFingerprint();
                 //$gametype = GameType::getStringByInt($row->gametype->value);
                 $entryfee = 'entryfee_'.$row->entryfee;
     
                 $group[$fingerprint]/*[$gametype]*/[$entryfee][] = $row;
             }
+        }
+        foreach($group as $t => $f){
+            ksort($group[$t], SORT_NATURAL);
         }
 
         return $group;
@@ -76,31 +79,31 @@ class OfmXlsParser
         $factors = array_map(function(array $type){
             return array_map(function(array $entryfee){
                 $num_entries = sizeof($entryfee);
-                $min_m_visitors = 999999.9;
-                $max_m_visitors = 0.0;
-                $sum_m_visitors = array_reduce($entryfee, function($carry, BlockEntry $entry)use(&$min_m_visitors,&$max_m_visitors){
-                    $m = atan($entry->visitors / ($entry->home * $entry->away));
-                    if($m < $min_m_visitors) $min_m_visitors = $m;
-                    if($m > $max_m_visitors) $max_m_visitors = $m;
+                $min_m = 1.0;
+                $max_m = 0.0;
+                $sum_m = array_reduce($entryfee, function($carry, BlockEntry $entry)use(&$min_m,&$max_m){
+                    $m = $entry->effective_utilization / ($entry->home * $entry->away);
+                    if($m < $min_m) $min_m = $m;
+                    if($m > $max_m) $max_m = $m;
                     return $carry + $m;
                 },0);
-                $average_m_visitors = $sum_m_visitors/$num_entries;
-                $quadsum_m_visitors = array_reduce($entryfee, function($carry, BlockEntry $entry)use($average_m_visitors){
-                    $m = atan($entry->visitors / ($entry->home * $entry->away));
-                    return $carry+(pow($m - $average_m_visitors,2));
+                $average_m = $sum_m/$num_entries;
+                $quadsum_m = array_reduce($entryfee, function($carry, BlockEntry $entry)use($average_m){
+                    $m = $entry->effective_utilization / ($entry->home * $entry->away);
+                    return $carry+(pow($m - $average_m,2));
                 },0);
-                $variance_m_visitors = $quadsum_m_visitors / $num_entries;
-                $derivation_m_visitors = sqrt($variance_m_visitors);
+                $variance_m = $quadsum_m / $num_entries;
+                $derivation_m = sqrt($variance_m);
                 return [
                     'numentries' => $num_entries,
-                    'min m visitors' => $min_m_visitors,
-                    'max m visitors' => $max_m_visitors,
-                    'sum m visitors' => $sum_m_visitors,
-                    'span m visitors' => $max_m_visitors - $min_m_visitors,
-                    'average m visitors' => $average_m_visitors,
-                    'quadsum m visitors' => $quadsum_m_visitors,
-                    'variance m visitors' => $variance_m_visitors,
-                    'derivation m visitors' => $derivation_m_visitors
+                    'min m' => $min_m,
+                    'max m' => $max_m,
+                    'sum m' => $sum_m,
+                    'span m' => $max_m - $min_m,
+                    'average m' => $average_m,
+                    'quadsum m' => $quadsum_m,
+                    'variance m' => $variance_m,
+                    'derivation m' => $derivation_m
                 ];
             }, $type);
         }, $groups);

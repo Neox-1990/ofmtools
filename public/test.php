@@ -50,8 +50,43 @@ $array10 = $parser->parseDocument($dom10);
 
 $megarray = array_merge($array01,$array02,$array03,$array04,$array05,$array06,$array07,$array08,$array09,$array10);
 
-//dd($megarray);
 $groups = $parser->groupEntries($megarray);
+
+/*
+foreach($groups as $t => $f){
+    echo "<h1>".$t."</h1>";
+    echo "<table class=\"table\">".
+        "<tr>".
+            "<th>Preis</th>".
+            "<th>Teamprodukt</th>".
+            "<th>Kapazität</th>".
+            "<th>Effektive Kapazität</th>".
+            "<th>Zuschauer</th>".
+            "<th>Zustand</th>".
+            "<th>Effektiver Zustand</th>".
+            "<th>Auslastung</th>".
+            "<th>Effektive Auslastung</th>".
+        "</tr>";
+        foreach($f as $rows){
+            foreach($rows as $entry){
+                echo "
+                <tr>
+                    <td>".$entry->entryfee."</td>
+                    <td>".($entry->home*$entry->away)."</td>
+                    <td>".$entry->capacity."</td>
+                    <td>".$entry->effective_capacity."</td>
+                    <td>".$entry->visitors."</td>
+                    <td>".$entry->condition."</td>
+                    <td>".$entry->effective_condition."</td>
+                    <td>".$entry->utilization."</td>
+                    <td>".$entry->effective_utilization."</td>
+                </tr>";
+            }
+        }
+    echo "</table>";
+}
+*/
+//dd($groups);
 $factors = $parser->calculateFactors($groups);
 //dd($factors);
 
@@ -61,18 +96,18 @@ foreach($factors as $type => $entries){
 <table class=\"table\">
     <tr>
         <th>Preis</th>
-        <th>M Faktor Zuschauer</th>
-        <th>Standardabweichung Zuschauer</th>
+        <th>M Faktor</th>
+        <th>Standardabweichung</th>
     </tr>";
-    ksort($entries, SORT_NATURAL);
+    //ksort($entries, SORT_NATURAL);
     foreach($entries as $price => $data){
         $fee = explode('_',$price);
         $fee = intval($fee[1]);
         echo "
     <tr>
         <td>".$fee." €</td>
-        <td>".number_format($data['average m visitors'],32)."</td>
-        <td>".number_format($data['derivation m visitors'],32)."</td>
+        <td>".number_format($data['average m'],32)."</td>
+        <td>".number_format($data['derivation m'],32)."</td>
     </tr>
         ";
     }
