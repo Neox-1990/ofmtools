@@ -79,14 +79,14 @@ class OfmXlsParser
                 $min_m_visitors = 999999.9;
                 $max_m_visitors = 0.0;
                 $sum_m_visitors = array_reduce($entryfee, function($carry, BlockEntry $entry)use(&$min_m_visitors,&$max_m_visitors){
-                    $m = atan($entry->visitors / ($entry->home * $entry->away));
+                    $m = $entry->visitors / ($entry->home * $entry->away);
                     if($m < $min_m_visitors) $min_m_visitors = $m;
                     if($m > $max_m_visitors) $max_m_visitors = $m;
                     return $carry + $m;
                 },0);
                 $average_m_visitors = $sum_m_visitors/$num_entries;
                 $quadsum_m_visitors = array_reduce($entryfee, function($carry, BlockEntry $entry)use($average_m_visitors){
-                    $m = atan($entry->visitors / ($entry->home * $entry->away));
+                    $m = $entry->visitors / ($entry->home * $entry->away);
                     return $carry+(pow($m - $average_m_visitors,2));
                 },0);
                 $variance_m_visitors = $quadsum_m_visitors / $num_entries;
